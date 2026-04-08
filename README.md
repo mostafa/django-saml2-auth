@@ -406,11 +406,11 @@ More information can be found in the [Okta Developer Documentation](https://deve
 
 ## Release Process
 
-I adopted a reasonably simple release process, which is almost automated, except for two actions that needed to be taken to start a release:
+I adopted a reasonably simple release process, which is almost automated, except for a one-time GitHub configuration, tagging, and push:
 
-1. Tag the `main` branch locally with the the `vSEMVER`, e.g. `v3.9.0`, and push the tag.
-2. After the tag is pushed, the release process will be triggered automatically.
-3. The release process will:
+1. In the GitHub repository, create an Actions **environment** named `pypi` (Settings → Environments) and store the **`PYPI_API_TOKEN`** secret there for PyPI uploads. The release workflow attaches the tag build job to this environment.
+2. Tag the `main` branch locally with the the `vSEMVER`, e.g. `v3.9.0`, and push the tag.
+3. Pushing the tag triggers the workflow, which will:
    1. run the linters and tests.
    2. build the binary and source package.
    3. publish the package to PyPI.

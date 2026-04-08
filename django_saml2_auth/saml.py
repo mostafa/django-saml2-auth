@@ -3,7 +3,6 @@
 import base64
 from typing import Any, Callable, Dict, Mapping, Optional, Union
 
-from dictor import dictor  # type: ignore
 from django.conf import settings
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.urls import NoReverseMatch
@@ -22,6 +21,7 @@ from django_saml2_auth.errors import (
     NO_USERNAME_OR_EMAIL_SPECIFIED,
 )
 from django_saml2_auth.exceptions import SAMLAuthError
+from django_saml2_auth.get_path import get_path
 from django_saml2_auth.utils import get_reverse, run_hook
 from saml2 import BINDING_HTTP_POST, BINDING_HTTP_REDIRECT, entity
 from saml2.client import Saml2Client
@@ -42,7 +42,7 @@ def get_assertion_url(request: HttpRequest) -> str:
         str: Either protocol://host or ASSERTION_URL
     """
     saml2_auth_settings = settings.SAML2_AUTH
-    assertion_url = dictor(saml2_auth_settings, "ASSERTION_URL")
+    assertion_url = get_path(saml2_auth_settings, "ASSERTION_URL")
     if assertion_url:
         return assertion_url
 
@@ -59,7 +59,7 @@ def get_default_next_url() -> Optional[str]:
         Optional[str]: Returns default next url for redirection or admin index
     """
     saml2_auth_settings = settings.SAML2_AUTH
-    default_next_url = dictor(saml2_auth_settings, "DEFAULT_NEXT_URL")
+    default_next_url = get_path(saml2_auth_settings, "DEFAULT_NEXT_URL")
     if default_next_url:
         return default_next_url
 
@@ -113,11 +113,11 @@ def get_metadata(
     saml2_auth_settings = settings.SAML2_AUTH
 
     # If there is a custom trigger, metadata is retrieved directly within the trigger
-    get_custom_metadata_trigger = dictor(saml2_auth_settings, "TRIGGER.GET_CUSTOM_METADATA")
+    get_custom_metadata_trigger = get_path(saml2_auth_settings, "TRIGGER.GET_CUSTOM_METADATA")
     if get_custom_metadata_trigger:
         return run_hook(get_custom_metadata_trigger, user_id, domain, saml_response)  # type: ignore
 
-    get_metadata_trigger = dictor(saml2_auth_settings, "TRIGGER.GET_METADATA_AUTO_CONF_URLS")
+    get_metadata_trigger = get_path(saml2_auth_settings, "TRIGGER.GET_METADATA_AUTO_CONF_URLS")
     if get_metadata_trigger:
         metadata_urls = run_hook(get_metadata_trigger, user_id)  # type: ignore
         if metadata_urls:
@@ -137,11 +137,11 @@ def get_metadata(
                 },
             )
 
-    metadata_local_file_path = dictor(saml2_auth_settings, "METADATA_LOCAL_FILE_PATH")
+    metadata_local_file_path = get_path(saml2_auth_settings, "METADATA_LOCAL_FILE_PATH")
     if metadata_local_file_path:
         return {"local": [metadata_local_file_path]}
     else:
-        single_metadata_url = dictor(saml2_auth_settings, "METADATA_AUTO_CONF_URL")
+        single_metadata_url = get_path(saml2_auth_settings, "METADATA_AUTO_CONF_URL")
         if validate_metadata_url(single_metadata_url):
             return {"remote": [{"url": single_metadata_url}]}
         else:
@@ -157,7 +157,7 @@ def get_metadata(
 
 
 def get_custom_acs_url() -> Optional[str]:
-    get_custom_acs_url_hook = dictor(settings.SAML2_AUTH, "TRIGGER.GET_CUSTOM_ASSERTION_URL")
+    get_custom_acs_url_hook = get_path(settings.SAML2_AUTH, "TRIGGER.GET_CUSTOM_ASSERTION_URL")
     return run_hook(get_custom_acs_url_hook) if get_custom_acs_url_hook else None
 
 
@@ -185,7 +185,7 @@ def get_saml_client(
     Returns:
         Optional[Saml2Client]: A Saml2Client or None
     """
-    get_user_id_from_saml_response = dictor(
+    get_user_id_from_saml_response = get_path(
         settings.SAML2_AUTH, "TRIGGER.GET_USER_ID_FROM_SAML_RESPONSE"
     )
     if get_user_id_from_saml_response and saml_response:
@@ -226,19 +226,17 @@ def get_saml_client(
                     ],
                 },
                 "allow_unsolicited": True,
-                "authn_requests_signed": dictor(
-                    saml2_auth_settings, "AUTHN_REQUESTS_SIGNED", default=True
+                "authn_requests_signed": get_path(
+                    saml2_auth_settings, "AUTHN_REQUESTS_SIGNED", True
                 ),
-                "logout_requests_signed": dictor(
-                    saml2_auth_settings, "LOGOUT_REQUESTS_SIGNED", default=True
+                "logout_requests_signed": get_path(
+                    saml2_auth_settings, "LOGOUT_REQUESTS_SIGNED", True
                 ),
-                "want_assertions_signed": dictor(
-                    saml2_auth_settings, "WANT_ASSERTIONS_SIGNED", default=True
+                "want_assertions_signed": get_path(
+                    saml2_auth_settings, "WANT_ASSERTIONS_SIGNED", True
                 ),
-                "want_response_signed": dictor(
-                    saml2_auth_settings, "WANT_RESPONSE_SIGNED", default=True
-                ),
-                "force_authn": dictor(saml2_auth_settings, "FORCE_AUTHN", default=False),
+                "want_response_signed": get_path(saml2_auth_settings, "WANT_RESPONSE_SIGNED", True),
+                "force_authn": get_path(saml2_auth_settings, "FORCE_AUTHN", False),
             },
         },
     }
@@ -420,25 +418,23 @@ def extract_user_identity(
 
     user_identity: Dict[str, Any] = authn_response.get_identity()  # type: ignore
 
-    email_field = dictor(saml2_auth_settings, "ATTRIBUTES_MAP.email", default="user.email")
-    username_field = dictor(saml2_auth_settings, "ATTRIBUTES_MAP.username", default="user.username")
-    firstname_field = dictor(
-        saml2_auth_settings, "ATTRIBUTES_MAP.first_name", default="user.first_name"
-    )
-    lastname_field = dictor(
-        saml2_auth_settings, "ATTRIBUTES_MAP.last_name", default="user.last_name"
-    )
+    email_field = get_path(saml2_auth_settings, "ATTRIBUTES_MAP.email", "user.email")
+    username_field = get_path(saml2_auth_settings, "ATTRIBUTES_MAP.username", "user.username")
+    firstname_field = get_path(saml2_auth_settings, "ATTRIBUTES_MAP.first_name", "user.first_name")
+    lastname_field = get_path(saml2_auth_settings, "ATTRIBUTES_MAP.last_name", "user.last_name")
 
     user = {}
-    user["email"] = dictor(user_identity, f"{email_field}|0", pathsep="|")  # Path includes "."
-    user["username"] = dictor(user_identity, f"{username_field}|0", pathsep="|")
-    user["first_name"] = dictor(user_identity, f"{firstname_field}|0", pathsep="|")
-    user["last_name"] = dictor(user_identity, f"{lastname_field}|0", pathsep="|")
+    user["email"] = get_path(
+        user_identity, f"{email_field}|0", None, pathsep="|"
+    )  # Path includes "."
+    user["username"] = get_path(user_identity, f"{username_field}|0", None, pathsep="|")
+    user["first_name"] = get_path(user_identity, f"{firstname_field}|0", None, pathsep="|")
+    user["last_name"] = get_path(user_identity, f"{lastname_field}|0", None, pathsep="|")
 
-    token_required = dictor(saml2_auth_settings, "TOKEN_REQUIRED", default=True)
+    token_required = get_path(saml2_auth_settings, "TOKEN_REQUIRED", True)
     if token_required:
-        token_field = dictor(saml2_auth_settings, "ATTRIBUTES_MAP.token", default="token")
-        user["token"] = dictor(user_identity, f"{token_field}|0", pathsep="|")
+        token_field = get_path(saml2_auth_settings, "ATTRIBUTES_MAP.token", "token")
+        user["token"] = get_path(user_identity, f"{token_field}|0", None, pathsep="|")
 
     if user["email"]:
         user["email"] = user["email"].lower()
@@ -474,7 +470,7 @@ def extract_user_identity(
     # This is useful when the user identity doesn't include custom attributes to determine
     # the organization, project or team that the user belongs to. Hence, the trigger can use
     # the user identity from the SAML response along with the whole authentication response.
-    extract_user_identity_trigger = dictor(saml2_auth_settings, "TRIGGER.EXTRACT_USER_IDENTITY")
+    extract_user_identity_trigger = get_path(saml2_auth_settings, "TRIGGER.EXTRACT_USER_IDENTITY")
     if extract_user_identity_trigger:
         return run_hook(extract_user_identity_trigger, user, authn_response)  # type: ignore
 

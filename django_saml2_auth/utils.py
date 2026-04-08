@@ -8,7 +8,6 @@ from importlib import import_module
 import logging
 from typing import Any, Callable, Dict, Iterable, Mapping, Optional, Tuple, Union
 
-from dictor import dictor  # type: ignore
 from django.conf import settings
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
@@ -22,6 +21,7 @@ from django_saml2_auth.errors import (
     PATH_ERROR,
 )
 from django_saml2_auth.exceptions import SAMLAuthError
+from django_saml2_auth.get_path import get_path
 
 
 def run_hook(
@@ -166,7 +166,7 @@ def exception_handler(
             Decorated view function with exception handling
     """
 
-    if dictor(settings.SAML2_AUTH, "DISABLE_EXCEPTION_HANDLER", False):
+    if get_path(settings.SAML2_AUTH, "DISABLE_EXCEPTION_HANDLER", False):
         return function
 
     def handle_exception(exc: Exception, request: HttpRequest) -> HttpResponse:
@@ -180,7 +180,7 @@ def exception_handler(
             HttpResponse: Rendered error page with details
         """
         logger = logging.getLogger(__name__)
-        if dictor(settings.SAML2_AUTH, "DEBUG", False):
+        if get_path(settings.SAML2_AUTH, "DEBUG", False):
             # Log the exception with traceback
             logger.exception(exc)
         else:

@@ -7,7 +7,6 @@ import urllib.parse as urlparse
 from typing import Optional, Union
 from urllib.parse import unquote
 
-from dictor import dictor  # type: ignore
 from django.conf import settings
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
@@ -29,6 +28,7 @@ from django_saml2_auth.errors import (
     USER_MISMATCH,
 )
 from django_saml2_auth.exceptions import SAMLAuthError
+from django_saml2_auth.get_path import get_path
 from django_saml2_auth.saml import (
     decode_saml_response,
     extract_user_identity,
@@ -143,7 +143,7 @@ def acs(request: HttpRequest):
 
     is_new_user, target_user = get_or_create_user(user)
 
-    before_login_trigger = dictor(saml2_auth_settings, "TRIGGER.BEFORE_LOGIN")
+    before_login_trigger = get_path(saml2_auth_settings, "TRIGGER.BEFORE_LOGIN")
     if before_login_trigger:
         run_hook(before_login_trigger, user)  # type: ignore
 
@@ -158,7 +158,7 @@ def acs(request: HttpRequest):
 
         login(request, target_user, model_backend)
 
-        after_login_trigger = dictor(saml2_auth_settings, "TRIGGER.AFTER_LOGIN")
+        after_login_trigger = get_path(saml2_auth_settings, "TRIGGER.AFTER_LOGIN")
         if after_login_trigger:
             run_hook(after_login_trigger, request.session, user)  # type: ignore
     else:
@@ -172,19 +172,21 @@ def acs(request: HttpRequest):
             },
         )
 
-    use_jwt = dictor(saml2_auth_settings, "USE_JWT", False)
+    use_jwt = get_path(saml2_auth_settings, "USE_JWT", False)
     if use_jwt:
         # Create a new JWT token for IdP-initiated login (acs)
         jwt_token = create_custom_or_default_jwt(target_user)
-        custom_token_query_trigger = dictor(saml2_auth_settings, "TRIGGER.CUSTOM_TOKEN_QUERY")
+        custom_token_query_trigger = get_path(saml2_auth_settings, "TRIGGER.CUSTOM_TOKEN_QUERY")
         query = ""  # Initialize query variable
         if custom_token_query_trigger:
             query_result = run_hook(custom_token_query_trigger, jwt_token)
             query = query_result if query_result is not None else ""
 
         # Use JWT auth to send token to frontend
-        frontend_url = dictor(saml2_auth_settings, "FRONTEND_URL", next_url)
-        custom_frontend_url_trigger = dictor(saml2_auth_settings, "TRIGGER.GET_CUSTOM_FRONTEND_URL")
+        frontend_url = get_path(saml2_auth_settings, "FRONTEND_URL", next_url)
+        custom_frontend_url_trigger = get_path(
+            saml2_auth_settings, "TRIGGER.GET_CUSTOM_FRONTEND_URL"
+        )
         if custom_frontend_url_trigger:
             frontend_url = run_hook(custom_frontend_url_trigger, relay_state)  # type: ignore
 
@@ -316,12 +318,12 @@ def signin(request: HttpRequest) -> HttpResponseRedirect:
     try:
         if "next=" in unquote(next_url):
             parsed_next_url = urlparse.parse_qs(urlparse.urlparse(unquote(next_url)).query)
-            next_url = dictor(parsed_next_url, "next.0")
+            next_url = get_path(parsed_next_url, "next.0")
     except Exception:
         next_url = request.GET.get("next") or get_default_next_url()
 
     # Only permit signin requests where the next_url is a safe URL
-    allowed_hosts = set(dictor(saml2_auth_settings, "ALLOWED_REDIRECT_HOSTS", []))
+    allowed_hosts = set(get_path(saml2_auth_settings, "ALLOWED_REDIRECT_HOSTS", []))
     url_ok = is_safe_url(next_url, allowed_hosts)
 
     if not url_ok:

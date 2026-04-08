@@ -20,14 +20,14 @@ jobs:
           - { "djangoVersion": "4.2.24", "pythonVersion": "3.10" }
           - { "djangoVersion": "4.2.24", "pythonVersion": "3.11" }
           - { "djangoVersion": "4.2.24", "pythonVersion": "3.12" }
-          - { "djangoVersion": "5.1.12", "pythonVersion": "3.10" }
-          - { "djangoVersion": "5.1.12", "pythonVersion": "3.11" }
-          - { "djangoVersion": "5.1.12", "pythonVersion": "3.12" }
-          - { "djangoVersion": "5.1.12", "pythonVersion": "3.13" }
-          - { "djangoVersion": "5.2.6", "pythonVersion": "3.10" }
-          - { "djangoVersion": "5.2.6", "pythonVersion": "3.11" }
-          - { "djangoVersion": "5.2.6", "pythonVersion": "3.12" }
-          - { "djangoVersion": "5.2.6", "pythonVersion": "3.13" }
+          - { "djangoVersion": "5.2.12", "pythonVersion": "3.10" }
+          - { "djangoVersion": "5.2.12", "pythonVersion": "3.11" }
+          - { "djangoVersion": "5.2.12", "pythonVersion": "3.12" }
+          - { "djangoVersion": "5.2.12", "pythonVersion": "3.13" }
+          - { "djangoVersion": "5.2.12", "pythonVersion": "3.14" }
+          - { "djangoVersion": "6.0.4", "pythonVersion": "3.12" }
+          - { "djangoVersion": "6.0.4", "pythonVersion": "3.13" }
+          - { "djangoVersion": "6.0.4", "pythonVersion": "3.14" }
     permissions:
       id-token: write
       contents: read

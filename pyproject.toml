@@ -1,14 +1,38 @@
 [project]
 name = "grafana-django-saml2-auth"
-readme = "README.md"
+# Embedded as the PyPI project description (long description); required for pypi.org project page.
+readme = { file = "README.md", content-type = "text/markdown" }
 dynamic = ["version"]
 description = "Django SAML2 Authentication Made Easy."
-authors = [{ name = "Mostafa Moradian", email = "mostafa@grafana.com" }]
+license = "Apache-2.0"
+authors = [{ name = "Mostafa Moradian", email = "mstfmoradian@gmail.com" }]
 requires-python = ">=3.10"
-dependencies = [
-    "pyjwt==2.12.1",
-    "pysaml2==7.5.4",
+keywords = ["authentication", "django", "saml", "saml2", "sso"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Web Environment",
+    "Framework :: Django",
+    "Framework :: Django :: 4.2",
+    "Framework :: Django :: 5.2",
+    "Framework :: Django :: 6.0",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Security",
+    "Topic :: Software Development :: Libraries :: Python Modules",
 ]
+dependencies = ["pyjwt==2.12.1", "pysaml2==7.5.4"]
+
+[project.urls]
+Homepage = "https://github.com/mostafa/django-saml2-auth"
+Issues = "https://github.com/mostafa/django-saml2-auth/issues"
 
 [dependency-groups]
 dev = [
@@ -54,7 +78,10 @@ line-length = 100
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "django_saml2_auth.tests.settings"
 pythonpath = "."
-filterwarnings = "ignore::DeprecationWarning"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::jwt.warnings.InsecureKeyLengthWarning",
+]
 addopts = ["--import-mode=importlib"]
 testpaths = ["django_saml2_auth/tests"]
 

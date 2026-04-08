@@ -28,9 +28,9 @@ For IdP-initiated SSO, the user will be created if it doesn't exist. Still, for 
 
   Python 3.14 is supported with **Django 5.2.8+** or **Django 6.0** ([5.2](https://docs.djangoproject.com/en/5.2/releases/5.2/#python-compatibility), [6.0](https://docs.djangoproject.com/en/6.0/releases/6.0/#python-compatibility)). Django 4.2 does not support Python 3.14. **Django 6.0** supports **Python 3.12, 3.13, and 3.14** only; use Django 5.2 for Python 3.10 or 3.11.
 
-- Release logs are available [here](https://github.com/mostafa/django-saml2-auth/releases).
+- Release notes are on [GitHub Releases](https://github.com/mostafa/django-saml2-auth/releases).
 
-- For contribution, read [contributing guide](CONTRIBUTING.md).
+- For contribution, read [contributing guide](CONTRIBUTING.md). To report security issues privately, see [SECURITY.md](SECURITY.md).
 
 ## CycloneDX SBOM
 

@@ -62,7 +62,8 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path-to-lcov: ./coverage.lcov
-          flag-name: run-${{ join(matrix.versions.*, '-') }}
+          # Object matrix has no splat in GHA expressions; join(matrix.versions.*, …) fails evaluation.
+          flag-name: run-${{ matrix.versions.djangoVersion }}-${{ matrix.versions.pythonVersion }}
           parallel: true
   finish:
     needs: test

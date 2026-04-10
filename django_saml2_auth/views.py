@@ -203,6 +203,17 @@ def acs(request: HttpRequest):
         if custom_frontend_url_trigger:
             frontend_url = run_hook(custom_frontend_url_trigger, relay_state)  # type: ignore
 
+        if not frontend_url:
+            raise SAMLAuthError(
+                "The next URL is invalid.",
+                extra={
+                    "exc_type": ValueError,
+                    "error_code": INVALID_NEXT_URL,
+                    "reason": "The next URL is invalid.",
+                    "status_code": 403,
+                },
+            )
+
         # Parse the frontend URL to handle query parameters properly
         try:
             parsed_url = urlparse.urlparse(frontend_url)
@@ -225,6 +236,17 @@ def acs(request: HttpRequest):
             # If URL parsing fails, fall back to simple string concatenation to
             # maintain backward compatibility with the old behavior
             destination_url = frontend_url + query
+
+        if not is_safe_url(destination_url, allowed_hosts):
+            raise SAMLAuthError(
+                "The next URL is invalid.",
+                extra={
+                    "exc_type": ValueError,
+                    "error_code": INVALID_NEXT_URL,
+                    "reason": "The next URL is invalid.",
+                    "status_code": 403,
+                },
+            )
 
         return HttpResponseRedirect(destination_url)
 

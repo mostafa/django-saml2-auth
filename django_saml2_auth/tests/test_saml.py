@@ -839,6 +839,7 @@ def test_acs_view_with_use_jwt_both_redirects_user_and_sets_cookies(
         "JWT_SECRET": "JWT_SECRET",
         "JWT_ALGORITHM": "HS256",
         "FRONTEND_URL": "https://app.example.com/account/login/saml",
+        "ALLOWED_REDIRECT_HOSTS": ["app.example.com"],
         "TRIGGER": {
             "BEFORE_LOGIN": None,
             "AFTER_LOGIN": None,
@@ -872,6 +873,7 @@ def test_acs_view_use_jwt_set_inactive_user(
         "JWT_SECRET": "JWT_SECRET",
         "JWT_ALGORITHM": "HS256",
         "FRONTEND_URL": "https://app.example.com/account/login/saml",
+        "ALLOWED_REDIRECT_HOSTS": ["app.example.com"],
         "TRIGGER": {
             "BEFORE_LOGIN": None,
             "AFTER_LOGIN": None,

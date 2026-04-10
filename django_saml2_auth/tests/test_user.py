@@ -258,6 +258,31 @@ def test_get_or_create_user_success(settings: SettingsWrapper):
 
 
 @pytest.mark.django_db
+def test_get_or_create_user_sets_email_when_username_is_user_id(settings: SettingsWrapper):
+    """New SAML users must get User.email set when USERNAME_FIELD is username (#244)."""
+    settings.SAML2_AUTH = {
+        "NEW_USER_PROFILE": {
+            "USER_GROUPS": [],
+            "ACTIVE_STATUS": True,
+            "STAFF_STATUS": False,
+            "SUPERUSER_STATUS": False,
+        },
+    }
+    created, user = get_or_create_user(
+        {
+            "username": "jdoe",
+            "email": "jdoe@example.com",
+            "first_name": "John",
+            "last_name": "Doe",
+            "user_identity": {},
+        }
+    )
+    assert created
+    assert user.username == "jdoe"
+    assert user.email == "jdoe@example.com"
+
+
+@pytest.mark.django_db
 def test_get_or_create_user_trigger_error(settings: SettingsWrapper):
     """Test get_or_create_user function to verify if it raises an exception in case the CREATE_USER
     trigger function is nonexistent.

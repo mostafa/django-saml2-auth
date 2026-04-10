@@ -28,7 +28,7 @@ from jwt.exceptions import PyJWTError
 
 
 def create_new_user(
-    email: str,
+    username: str,
     first_name: Optional[str] = None,
     last_name: Optional[str] = None,
     **kwargs,
@@ -36,12 +36,13 @@ def create_new_user(
     """Create a new user with the given information
 
     Args:
-        email (str): Email
+        username (str): Value for ``User.USERNAME_FIELD`` (often username or email).
         first_name (str): First name
         last_name (str): Last name
 
     Keyword Args:
-        **kwargs: Additional keyword arguments
+        **kwargs: Additional keyword arguments (for example ``email`` when it is not the username
+            field; see issue #244).
 
     Raises:
         SAMLAuthError: There was an error creating the new user.
@@ -55,7 +56,9 @@ def create_new_user(
 
     is_active = get_path(saml2_auth_settings, "NEW_USER_PROFILE.ACTIVE_STATUS", True)
     is_staff = get_path(saml2_auth_settings, "NEW_USER_PROFILE.STAFF_STATUS", False)
-    is_superuser = get_path(saml2_auth_settings, "NEW_USER_PROFILE.SUPERUSER_STATUS", False)
+    is_superuser = get_path(
+        saml2_auth_settings, "NEW_USER_PROFILE.SUPERUSER_STATUS", False
+    )
     user_groups = get_path(saml2_auth_settings, "NEW_USER_PROFILE.USER_GROUPS", [])
 
     if first_name and last_name:
@@ -63,7 +66,7 @@ def create_new_user(
         kwargs["last_name"] = last_name
 
     try:
-        user = user_model.objects.create_user(email, **kwargs)
+        user = user_model.objects.create_user(username, **kwargs)
         user.is_active = is_active
         user.is_staff = is_staff
         user.is_superuser = is_superuser
@@ -134,7 +137,24 @@ def get_or_create_user(user: Dict[str, Any]) -> Tuple[bool, User]:
                         "status_code": 400,
                     },
                 )
-            target_user = create_new_user(user_id, user["first_name"], user["last_name"])
+            # When USERNAME_FIELD is not the email field, Django's create_user must receive
+            # the email separately; otherwise new users have an empty email:
+            # https://github.com/grafana/django-saml2-auth/issues/244
+            create_extra: Dict[str, Any] = {}
+            email_value = user.get("email")
+            if (
+                email_value
+                and user_model.EMAIL_FIELD
+                and user_model.EMAIL_FIELD != user_model.USERNAME_FIELD
+            ):
+                create_extra[user_model.EMAIL_FIELD] = email_value
+
+            target_user = create_new_user(
+                user_id,
+                user.get("first_name"),
+                user.get("last_name"),
+                **create_extra,
+            )
 
             create_user_trigger = get_path(saml2_auth_settings, "TRIGGER.CREATE_USER")
             if create_user_trigger:
@@ -171,7 +191,9 @@ def get_or_create_user(user: Dict[str, Any]) -> Tuple[bool, User]:
             try:
                 groups.append(Group.objects.get(name=group_name_django))
             except Group.DoesNotExist:
-                should_create_new_groups = get_path(saml2_auth_settings, "CREATE_GROUPS", False)
+                should_create_new_groups = get_path(
+                    saml2_auth_settings, "CREATE_GROUPS", False
+                )
                 if should_create_new_groups:
                     groups.append(Group.objects.create(name=group_name_django))
 
@@ -193,7 +215,9 @@ def get_user_id(user: Union[str, Dict[str, Any]]) -> Optional[str]:
     user_id = None
 
     if isinstance(user, dict):
-        user_id = user["email"] if user_model.USERNAME_FIELD == "email" else user["username"]
+        user_id = (
+            user["email"] if user_model.USERNAME_FIELD == "email" else user["username"]
+        )
 
     if isinstance(user, str):
         user_id = user
@@ -353,12 +377,16 @@ def create_jwt_token(user_id: str) -> Optional[str]:
     jwt_private_key = get_path(saml2_auth_settings, "JWT_PRIVATE_KEY")
     validate_private_key(jwt_algorithm, jwt_private_key)
 
-    jwt_private_key_passphrase = get_path(saml2_auth_settings, "JWT_PRIVATE_KEY_PASSPHRASE")
+    jwt_private_key_passphrase = get_path(
+        saml2_auth_settings, "JWT_PRIVATE_KEY_PASSPHRASE"
+    )
     jwt_expiration = get_path(saml2_auth_settings, "JWT_EXP", 60)  # default: 1 minute
 
     payload = {
         user_model.USERNAME_FIELD: user_id,
-        "exp": (datetime.now(tz=timezone.utc) + timedelta(seconds=jwt_expiration)).timestamp(),
+        "exp": (
+            datetime.now(tz=timezone.utc) + timedelta(seconds=jwt_expiration)
+        ).timestamp(),
     }
 
     # If a passphrase is specified, we need to use a PEM-encoded private key
@@ -399,7 +427,9 @@ def create_custom_or_default_jwt(user: Union[str, User]):
     saml2_auth_settings = settings.SAML2_AUTH
     user_model = get_user_model()
 
-    custom_create_jwt_trigger = get_path(saml2_auth_settings, "TRIGGER.CUSTOM_CREATE_JWT")
+    custom_create_jwt_trigger = get_path(
+        saml2_auth_settings, "TRIGGER.CUSTOM_CREATE_JWT"
+    )
 
     # If user is the id (user_model.USERNAME_FIELD), set it as user_id
     user_id: Optional[str] = None
@@ -494,7 +524,9 @@ def decode_custom_or_default_jwt(jwt_token: str) -> Optional[str]:
         Optional[str]: A user_id as str or None.
     """
     saml2_auth_settings = settings.SAML2_AUTH
-    custom_decode_jwt_trigger = get_path(saml2_auth_settings, "TRIGGER.CUSTOM_DECODE_JWT")
+    custom_decode_jwt_trigger = get_path(
+        saml2_auth_settings, "TRIGGER.CUSTOM_DECODE_JWT"
+    )
     if custom_decode_jwt_trigger:
         user_id = run_hook(custom_decode_jwt_trigger, jwt_token)  # type: ignore
     else:

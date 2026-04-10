@@ -1,12 +1,8 @@
-name: deploy
+# Shared test + Coveralls jobs. Called from ci.yml (PR / main) and release.yml (tags).
+name: Reusable test suite
 
 on:
-  push:
-    branches:
-      - main
-    tags:
-      - v*
-  pull_request:
+  workflow_call:
 
 permissions: {}
 
@@ -29,8 +25,8 @@ jobs:
           - { "djangoVersion": "6.0.4", "pythonVersion": "3.13" }
           - { "djangoVersion": "6.0.4", "pythonVersion": "3.14" }
     permissions:
-      id-token: write
-      contents: read
+      id-token: write # reserved for OIDC-capable coverage or signing steps
+      contents: read # checkout and read coverage output
     steps:
       - name: Checkout 🛎️
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -49,12 +45,14 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y xmlsec1 libxml2-dev libxslt1-dev
       - name: Install dependencies 📦
+        env:
+          DJANGO_VERSION: ${{ matrix.versions.djangoVersion }}
         run: |
           uv sync
           # Install matrix Django into the job venv only. `uv add` re-resolves the whole project
           # for all `requires-python` versions; Django 6.x needs Python >=3.12 and fails that
           # universal resolution while the project still supports 3.10/3.11.
-          uv pip install "Django==${{ matrix.versions.djangoVersion }}"
+          uv pip install "Django==${DJANGO_VERSION}"
       - name: Check types, syntax and duckstrings 🦆
         run: |
           uv run python -m mypy --explicit-package-bases .
@@ -65,12 +63,14 @@ jobs:
       - name: Submit coverage report to Coveralls 📈
         uses: coverallsapp/github-action@648a8eb78e6d50909eff900e4ec85cab4524a45b # v2.3.6
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # github.token avoids secrets: inherit on callers (zizmor: secrets-inherit).
+          github-token: ${{ github.token }}
           path-to-lcov: ./coverage.lcov
           # Object matrix has no splat in GHA expressions; join(matrix.versions.*, …) fails evaluation.
           flag-name: run-${{ matrix.versions.djangoVersion }}-${{ matrix.versions.pythonVersion }}
           parallel: true
   finish:
+    name: Coveralls parallel finished
     needs: test
     if: ${{ always() }}
     runs-on: ubuntu-latest
@@ -81,59 +81,3 @@ jobs:
         uses: coverallsapp/github-action@648a8eb78e6d50909eff900e4ec85cab4524a45b # v2.3.6
         with:
           parallel-finished: true
-  build:
-    name: Build and Push django-saml2-auth to PyPI
-    runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags') }}
-    needs: test
-    # Use a dedicated environment so PyPI tokens are not read at job level without it (zizmor: secrets-outside-env).
-    environment:
-      name: pypi
-    env:
-      python-version: "3.10"
-    permissions:
-      contents: write
-      id-token: write
-    steps:
-      - name: Checkout 🛎️
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          persist-credentials: false
-      - name: Set up Python 🐍
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
-        with:
-          python-version: ${{ env.python-version }}
-      - name: Install uv
-        uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57 # v8.0.0
-        with:
-          enable-cache: false
-      - name: Install system libraries 📦
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y xmlsec1 libxml2-dev libxslt1-dev
-      - name: Install dependencies 📦
-        run: |
-          uv sync
-          uv pip install build cyclonedx-bom twine
-      - name: Generate CycloneDX SBOM artifacts 📃
-        run: |
-          uv run python -m cyclonedx_py env --pyproject pyproject.toml --of JSON -o django-saml2-auth-${GITHUB_REF_NAME}.cyclonedx.json
-      - name: Build package 🏗️
-        run: |
-          uv run python -m build
-      - name: Verify package metadata (README / long description) 📄
-        run: |
-          uv run python -m twine check --strict dist/*
-      - name: Publish to PyPI 📦
-        run: |
-          uv run python -m twine upload --username __token__ --password ${{ secrets.PYPI_API_TOKEN }} dist/*
-      - name: Create release and add artifacts 🚀
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release create "${GITHUB_REF_NAME}" \
-            --title "${GITHUB_REF_NAME}" \
-            --generate-notes \
-            dist/*.tar.gz \
-            dist/*.whl \
-            "django-saml2-auth-${GITHUB_REF_NAME}.cyclonedx.json"

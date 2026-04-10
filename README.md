@@ -1,6 +1,6 @@
 # Django SAML2 Authentication
 
-[![PyPI](https://img.shields.io/pypi/v/grafana-django-saml2-auth?label=version&logo=pypi)](https://pypi.org/project/grafana-django-saml2-auth/) [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/mostafa/django-saml2-auth/deploy.yml?branch=main&logo=github)](https://github.com/mostafa/django-saml2-auth/actions) [![Coveralls](https://img.shields.io/coveralls/github/mostafa/django-saml2-auth?logo=coveralls)](https://coveralls.io/github/mostafa/django-saml2-auth) [![Downloads](https://pepy.tech/badge/grafana-django-saml2-auth)](https://pepy.tech/project/grafana-django-saml2-auth)
+[![PyPI](https://img.shields.io/pypi/v/grafana-django-saml2-auth?label=version&logo=pypi)](https://pypi.org/project/grafana-django-saml2-auth/) [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/mostafa/django-saml2-auth/ci.yml?branch=main&logo=github)](https://github.com/mostafa/django-saml2-auth/actions) [![Coveralls](https://img.shields.io/coveralls/github/mostafa/django-saml2-auth?logo=coveralls)](https://coveralls.io/github/mostafa/django-saml2-auth) [![Downloads](https://pepy.tech/badge/grafana-django-saml2-auth)](https://pepy.tech/project/grafana-django-saml2-auth)
 
 > [!NOTE]
 > To learn more about SAML SSO in Django, read the "SAML SSO in Django" series: [Part 1: Introduction to SAML SSO](https://mostafa.dev/saml-sso-in-django-734e0f871f22) and [Part 2: Integrating SAML SSO into a Django app with Okta](https://mostafa.dev/saml-sso-in-django-1a681123e801).
@@ -37,7 +37,7 @@ With **`CREATE_USER`** enabled, new users can be created in Django when they com
 
 ## CycloneDX SBOM
 
-Each release includes a CycloneDX SBOM (JSON) as a workflow artifact, built with [cyclonedx-python](https://github.com/CycloneDX/cyclonedx-python) in [.github/workflows/deploy.yml](.github/workflows/deploy.yml).
+Each release includes a CycloneDX SBOM (JSON) as a workflow artifact, built with [cyclonedx-python](https://github.com/CycloneDX/cyclonedx-python) in [.github/workflows/release.yml](.github/workflows/release.yml).
 
 ## Installation
 

@@ -126,6 +126,19 @@ def acs(request: HttpRequest):
     elif next_url is None:
         next_url = get_default_next_url()
 
+    # Same redirect policy as signin(): only allow same-site / allowed-host targets.
+    allowed_hosts = set(get_path(saml2_auth_settings, "ALLOWED_REDIRECT_HOSTS", []))
+    if next_url and not is_safe_url(next_url, allowed_hosts):
+        raise SAMLAuthError(
+            "The next URL is invalid.",
+            extra={
+                "exc_type": ValueError,
+                "error_code": INVALID_NEXT_URL,
+                "reason": "The next URL is invalid.",
+                "status_code": 403,
+            },
+        )
+
     if relay_state and relay_state_is_token:
         redirected_user_id = decode_custom_or_default_jwt(relay_state)
 

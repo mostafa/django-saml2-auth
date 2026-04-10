@@ -212,7 +212,9 @@ python setup.py install
         'WANT_RESPONSE_SIGNED': True,  # Require response to be signed
         'FORCE_AUTHN': False, # Forces the user to re-authenticate with each authentication request
         'ACCEPTED_TIME_DIFF': None,  # Accepted time difference between your server and the Identity Provider
-        'ALLOWED_REDIRECT_HOSTS': ["https://myfrontendclient.com"], # Allowed hosts to redirect to using the ?next parameter
+        # Hostnames only (no `https://` prefix), per Django's url_has_allowed_host_and_scheme.
+        # Used for `?next` (signin), post-login ACS redirects (including RelayState), and USE_JWT targets.
+        'ALLOWED_REDIRECT_HOSTS': ["myfrontendclient.com"],
         'TOKEN_REQUIRED': True,  # Whether or not to require the token parameter in the SAML assertion
         'DISABLE_EXCEPTION_HANDLER': True,  # Whether the custom exception handler should be used
     }

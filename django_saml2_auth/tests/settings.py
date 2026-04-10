@@ -104,9 +104,9 @@ SAML2_AUTH = {
     "WANT_ASSERTIONS_SIGNED": True,
     "WANT_RESPONSE_SIGNED": True,
     "ALLOWED_REDIRECT_HOSTS": [
-        "https://app.example.com",
-        "https://api.example.com",
-        "https://example.com",
+        "app.example.com",
+        "api.example.com",
+        "example.com",
     ],
     "TOKEN_REQUIRED": True,
 }

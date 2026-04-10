@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  pull_request:
+    paths-ignore:
+      - "*.md"
+      - "**/*.md"
+      - "**/static/**"
+      - "static/**"
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "*.md"
+      - "**/*.md"
+      - "**/static/**"
+      - "static/**"
+
+permissions: {}
+
+jobs:
+  test-suite:
+    uses: ./.github/workflows/reusable-test.yml
+    secrets: inherit

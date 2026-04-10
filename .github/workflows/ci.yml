@@ -5,20 +5,17 @@ on:
     paths-ignore:
       - "*.md"
       - "**/*.md"
-      - "**/static/**"
-      - "static/**"
+      - "LICENSE"
   push:
     branches:
       - main
     paths-ignore:
       - "*.md"
       - "**/*.md"
-      - "**/static/**"
-      - "static/**"
+      - "LICENSE"
 
 permissions: {}
 
 jobs:
   test-suite:
     uses: ./.github/workflows/reusable-test.yml
-    secrets: inherit

@@ -24,9 +24,9 @@ jobs:
           - { "djangoVersion": "6.0.4", "pythonVersion": "3.12" }
           - { "djangoVersion": "6.0.4", "pythonVersion": "3.13" }
           - { "djangoVersion": "6.0.4", "pythonVersion": "3.14" }
-    permissions:
-      id-token: write
-      contents: read
+      permissions:
+        id-token: write # reserved for OIDC-capable coverage or signing steps
+        contents: read # checkout and read coverage output
     steps:
       - name: Checkout 🛎️
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -45,12 +45,14 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y xmlsec1 libxml2-dev libxslt1-dev
       - name: Install dependencies 📦
+        env:
+          DJANGO_VERSION: ${{ matrix.versions.djangoVersion }}
         run: |
           uv sync
           # Install matrix Django into the job venv only. `uv add` re-resolves the whole project
           # for all `requires-python` versions; Django 6.x needs Python >=3.12 and fails that
           # universal resolution while the project still supports 3.10/3.11.
-          uv pip install "Django==${{ matrix.versions.djangoVersion }}"
+          uv pip install "Django==${DJANGO_VERSION}"
       - name: Check types, syntax and duckstrings 🦆
         run: |
           uv run python -m mypy --explicit-package-bases .
@@ -61,12 +63,14 @@ jobs:
       - name: Submit coverage report to Coveralls 📈
         uses: coverallsapp/github-action@648a8eb78e6d50909eff900e4ec85cab4524a45b # v2.3.6
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # github.token avoids secrets: inherit on callers (zizmor: secrets-inherit).
+          github-token: ${{ github.token }}
           path-to-lcov: ./coverage.lcov
           # Object matrix has no splat in GHA expressions; join(matrix.versions.*, …) fails evaluation.
           flag-name: run-${{ matrix.versions.djangoVersion }}-${{ matrix.versions.pythonVersion }}
           parallel: true
   finish:
+    name: Coveralls parallel finished
     needs: test
     if: ${{ always() }}
     runs-on: ubuntu-latest

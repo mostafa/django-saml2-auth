@@ -16,8 +16,6 @@ PyJWT: [José Padilla](https://github.com/jpadilla) (Auth0) and other contributo
 
 cryptography: [Paul Kehrer](https://github.com/reaperhulk) and other contributors.
 
-dictor: [perfecto25](https://github.com/perfecto25) and other contributors.
-
 # Test dependencies
 
 django: [various contributors](https://github.com/django/django/blob/master/AUTHORS).

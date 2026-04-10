@@ -21,17 +21,17 @@ This library is tested against these SAML SSO identity providers. You can probab
 
 For debugging your setup, you can use SAML-tracer add-on on [Firefox](https://addons.mozilla.org/en-US/firefox/addon/saml-tracer/) or extension on [Chrome](https://chrome.google.com/webstore/detail/saml-tracer/mpdajninpobndbfcldcmbpnnbhibjmch?hl=en), which will help you capture SAML SSO traffic and shows you what is passed around in the HTTP messages.
 
-Read the [tests](django_saml2_auth/tests) to learn more about settings and how each function or endpoint works. And when you open a PR, please add tests and documentation. You can also add your name to the list of [authors](AUTHORS.md). When the PR is ready, mention  for the review.
+Read the [tests](django_saml2_auth/tests) to learn more about settings and how each function or endpoint works. And when you open a PR, please add tests and documentation. You can also add your name to the list of [authors](AUTHORS.md). When the PR is ready, mention [@mostafa](https://github.com/mostafa) for the review.
 
 ## How to Contribute
 
 1. Check for open issues or open a fresh issue to start a discussion around a feature idea or a bug.
-2. Fork [the repository](http://github.com/loadimpact/django-saml2-auth) on GitHub to start making your changes to the **master** branch (or branch off of it).
+2. Fork [the repository](http://github.com/mostafa/django-saml2-auth) on GitHub to start making your changes to the **main** branch (or branch off of it).
 3. Write a test which shows that the bug was fixed or that the feature works as expected.
 4. Send a pull request and bug the maintainer ([@mostafa](https://github.com/mostafa)) until it gets merged and published. :) Make sure to add yourself to [authors](AUTHORS.md).
 
 ## When you raise an issue or open a PR
 
-Please note this library is mission-critical and supports almost all django versions since 2.2.x. We need to be extremely careful when merging any changes.
+Please note this library is mission-critical. Supported Django and Python versions follow the [README](README.md) compatibility matrix; we need to be careful when merging changes.
 
-The support for new versions of django are welcome and I'll make best effort to make it latest django compatible.
+Support for new Django and Python releases is welcome; PRs should include tests and documentation updates for the matrix where applicable.

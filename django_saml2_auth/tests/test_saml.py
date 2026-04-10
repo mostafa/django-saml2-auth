@@ -480,6 +480,7 @@ def test_get_saml_client_success_with_custom_assertion_url_hook(settings: Settin
         "sp",
     )
 
+
 @responses.activate
 def test_decode_saml_response_success(
     settings: SettingsWrapper,
@@ -845,6 +846,7 @@ def test_acs_view_use_jwt_set_inactive_user(
     result = acs(post_request)
     assert result.status_code == 500
     assert f"Error code: {INACTIVE_USER}" in result.content.decode()
+
 
 @pytest.mark.django_db
 @responses.activate

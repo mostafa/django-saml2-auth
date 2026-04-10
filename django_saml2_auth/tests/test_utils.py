@@ -9,10 +9,11 @@ from pytest_django.fixtures import SettingsWrapper
 
 from django_saml2_auth.exceptions import SAMLAuthError
 from django_saml2_auth.utils import (
+    JWT_WELL_FORMED_MAX_INPUT_CHARS,
     exception_handler,
     get_reverse,
-    run_hook,
     is_jwt_well_formed,
+    run_hook,
 )
 
 
@@ -160,10 +161,89 @@ def test_exception_handler_disabled_on_exception(settings: SettingsWrapper):
         decorated_goodbye(HttpRequest())
 
 
+# Minimal JWS compact shape: HS256 header, empty object payload, shortest valid signature segment.
+_MINIMAL_JWS_COMPACT = "eyJhbGciOiJIUzI1NiJ9.e30.xx"
+
+
 def test_jwt_well_formed():
-    """Test if passed RelayState is a well formed JWT"""
+    """Test if passed RelayState is a well formed JWT (JWS compact: header.payload.sig, JSON, alg)."""
     token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI0MjQyIiwibmFtZSI6Ikplc3NpY2EgVGVtcG9yYWwiLCJuaWNrbmFtZSI6Ikplc3MifQ.EDkUUxaM439gWLsQ8a8mJWIvQtgZe0et3O3z4Fd_J8o"  # noqa
-    res = is_jwt_well_formed(token)  # True
-    assert res is True
-    res = is_jwt_well_formed("/")  # False
-    assert res is False
+    assert is_jwt_well_formed(token) is True
+    assert is_jwt_well_formed(_MINIMAL_JWS_COMPACT) is True
+    assert is_jwt_well_formed("/") is False
+    assert is_jwt_well_formed("") is False
+    assert is_jwt_well_formed(None) is False  # type: ignore[arg-type]
+    assert is_jwt_well_formed("a.b") is False
+    assert is_jwt_well_formed("not-base64.not-base64.not-base64") is False
+    # Header decodes but is not JSON object with alg
+    assert is_jwt_well_formed("YWFh.YWFh.YWFh") is False
+
+
+@pytest.mark.parametrize(
+    ("sample", "expected"),
+    [
+        # Leading / trailing whitespace around a valid compact JWT
+        ("  eyJhbGciOiJIUzI1NiJ9.e30.xx  ", True),
+        ("\teyJhbGciOiJIUzI1NiJ9.e30.xx\n", True),
+        # Unicode in JSON payload (UTF-8)
+        (
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiAi4oKsIn0.xx",
+            True,
+        ),
+        # Four segments (e.g. mistaken JWE or extra dot)
+        ("a.b.c.d", False),
+        # Empty or partial segments
+        ("..xx", False),
+        (".payload.sig", False),
+        ("header..sig", False),
+        # Header JSON is not an object (array / scalar / null)
+        ("W10.e30.xx", False),
+        ("MQ.e30.xx", False),
+        ("bnVsbA.e30.xx", False),
+        # Header object without alg (only typ)
+        ("eyJ0eXAiOiAiSldUIn0.e30.xx", False),
+        # alg present but not a non-empty string
+        ("eyJhbGciOiAyNTZ9.e30.xx", False),
+        ("eyJhbGciOiAiIn0.e30.xx", False),
+        ("eyJhbGciOiAiICAgIn0.e30.xx", False),
+        # Payload not valid JSON
+        ("eyJhbGciOiJIUzI1NiJ9.YWFh.xx", False),
+        # Signature segment cannot be base64url-decoded (library rejects 1-char body)
+        ("eyJhbGciOiJIUzI1NiJ9.e30.x", False),
+        # Whitespace-only after strip
+        ("   \t\n  ", False),
+        # Not a string
+        (123, False),
+        (b"bytes", False),
+    ],
+    ids=[
+        "strip_spaces",
+        "strip_tab_newline",
+        "unicode_payload",
+        "four_segments",
+        "empty_header_and_payload",
+        "empty_header",
+        "empty_payload",
+        "header_json_array",
+        "header_json_number",
+        "header_json_null",
+        "header_typ_only",
+        "alg_not_string",
+        "alg_empty",
+        "alg_whitespace_only",
+        "payload_not_json",
+        "signature_too_short_b64",
+        "whitespace_only",
+        "not_str_int",
+        "not_str_bytes",
+    ],
+)
+def test_is_jwt_well_formed_corner_cases(sample, expected):
+    assert is_jwt_well_formed(sample) is expected
+
+
+def test_is_jwt_well_formed_rejects_oversized_input():
+    """Very long RelayState strings are rejected before decoding (DoS mitigation)."""
+    assert is_jwt_well_formed("a" * (JWT_WELL_FORMED_MAX_INPUT_CHARS + 1)) is False
+    # Under the limit but not JWT-shaped: cheap rejection, no crash
+    assert is_jwt_well_formed("a" * JWT_WELL_FORMED_MAX_INPUT_CHARS) is False

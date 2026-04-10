@@ -3,12 +3,13 @@ E.g. creating SAML client, creating user, exception handling, etc.
 """
 
 import base64
+import binascii
+import json
 from functools import wraps
 from importlib import import_module
 import logging
 from typing import Any, Callable, Dict, Iterable, Mapping, Optional, Tuple, Union
 
-from dictor import dictor  # type: ignore
 from django.conf import settings
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
@@ -22,6 +23,7 @@ from django_saml2_auth.errors import (
     PATH_ERROR,
 )
 from django_saml2_auth.exceptions import SAMLAuthError
+from django_saml2_auth.get_path import get_path
 
 
 def run_hook(
@@ -166,7 +168,7 @@ def exception_handler(
             Decorated view function with exception handling
     """
 
-    if dictor(settings.SAML2_AUTH, "DISABLE_EXCEPTION_HANDLER", False):
+    if get_path(settings.SAML2_AUTH, "DISABLE_EXCEPTION_HANDLER", False):
         return function
 
     def handle_exception(exc: Exception, request: HttpRequest) -> HttpResponse:
@@ -180,7 +182,7 @@ def exception_handler(
             HttpResponse: Rendered error page with details
         """
         logger = logging.getLogger(__name__)
-        if dictor(settings.SAML2_AUTH, "DEBUG", False):
+        if get_path(settings.SAML2_AUTH, "DEBUG", False):
             # Log the exception with traceback
             logger.exception(exc)
         else:
@@ -215,27 +217,61 @@ def exception_handler(
     return wrapper
 
 
-def is_jwt_well_formed(jwt: str):
-    """Check if JWT is well formed
+# Upper bound on RelayState / compact-JWT string length for shape-only checks (DoS mitigation).
+JWT_WELL_FORMED_MAX_INPUT_CHARS = 65536
+
+
+def _decode_jwt_b64url_segment(segment: str) -> bytes:
+    """Decode a JWS compact-serialization segment (base64url, RFC 7515)."""
+    padding = -len(segment) % 4
+    return base64.urlsafe_b64decode(segment + ("=" * padding))
+
+
+def is_jwt_well_formed(token: Optional[str]) -> bool:
+    """Return True if ``token`` looks like a JWS compact JWT (three base64url segments,
+    JSON header and payload, header contains ``alg``).
+
+    Used to tell whether ``RelayState`` is carrying a JWT vs a redirect URL/path. This does
+    **not** verify signatures or claims — only structural shape.
 
     Args:
-        jwt (str): Json Web Token
+        token: Raw string (e.g. ``RelayState``), or None.
 
     Returns:
-        Boolean: True if JWT is well formed, otherwise False
+        True if the string matches JWS compact JWT shape, otherwise False.
     """
-    if isinstance(jwt, str):
-        # JWT should contain three segments, separated by two period ('.') characters.
-        jwt_segments = jwt.split(".")
-        if len(jwt_segments) == 3:
-            jose_header = jwt_segments[0]
-            # base64-encoded string length should be a multiple of 4
-            if len(jose_header) % 4 == 0:
-                try:
-                    jh_decoded = base64.b64decode(jose_header).decode("utf-8")
-                    if jh_decoded and jh_decoded.find("JWT") > -1:
-                        return True
-                except Exception:
-                    return False
-    # If tests not passed return False
-    return False
+    if not isinstance(token, str):
+        return False
+
+    token = token.strip()
+    if not token:
+        return False
+
+    if len(token) > JWT_WELL_FORMED_MAX_INPUT_CHARS:
+        return False
+
+    parts = token.split(".")
+    if len(parts) != 3:
+        return False
+
+    header_b64, payload_b64, signature_b64 = parts
+    if not header_b64 or not payload_b64:
+        return False
+
+    try:
+        header_raw = _decode_jwt_b64url_segment(header_b64)
+        payload_raw = _decode_jwt_b64url_segment(payload_b64)
+        _decode_jwt_b64url_segment(signature_b64)
+        header = json.loads(header_raw.decode("utf-8"))
+        json.loads(payload_raw.decode("utf-8"))
+    except (ValueError, binascii.Error, UnicodeDecodeError, json.JSONDecodeError):
+        return False
+
+    if not isinstance(header, dict):
+        return False
+
+    alg = header.get("alg")
+    if not isinstance(alg, str) or not alg.strip():
+        return False
+
+    return True

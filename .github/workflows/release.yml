@@ -14,6 +14,9 @@ permissions: {}
 
 jobs:
   test-suite:
+    permissions:
+      contents: read # nested reusable: checkout + Coveralls
+      id-token: write # nested reusable: matrix OIDC scope
     uses: ./.github/workflows/reusable-test.yml
   build:
     name: Build and Push django-saml2-auth to PyPI

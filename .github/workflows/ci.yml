@@ -18,4 +18,8 @@ permissions: {}
 
 jobs:
   test-suite:
+    # Caller must grant scopes for nested reusable jobs (`permissions: {}` yields none for both).
+    permissions:
+      contents: read # checkout + coverage artifacts
+      id-token: write # matrix job requests OIDC-capable token scope
     uses: ./.github/workflows/reusable-test.yml

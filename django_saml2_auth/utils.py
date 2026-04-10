@@ -25,6 +25,9 @@ from django_saml2_auth.errors import (
 from django_saml2_auth.exceptions import SAMLAuthError
 from django_saml2_auth.get_path import get_path
 
+# Keys removed from SAMLAuthError.extra before rendering error.html (avoid leaking raw exceptions).
+_ERROR_TEMPLATE_STRIP_EXTRA_KEYS = frozenset({"exc", "exc_type"})
+
 
 def run_hook(
     function_path: str,
@@ -189,7 +192,16 @@ def exception_handler(
             # Log the exception without traceback
             logger.debug(exc)
 
-        context: Optional[Dict[str, Any]] = exc.extra if isinstance(exc, SAMLAuthError) else {}
+        context: Optional[Dict[str, Any]] = None
+        if isinstance(exc, SAMLAuthError) and exc.extra:
+            context = {
+                k: v
+                for k, v in exc.extra.items()
+                if k not in _ERROR_TEMPLATE_STRIP_EXTRA_KEYS
+            }
+        else:
+            context = {}
+
         if isinstance(exc, SAMLAuthError) and exc.extra:
             status = exc.extra.get("status_code")
         else:

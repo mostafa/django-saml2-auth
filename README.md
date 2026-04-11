@@ -8,7 +8,7 @@
 > [!IMPORTANT]
 > This project is a fork of [grafana/django-saml2-auth](https://github.com/grafana/django-saml2-auth), itself forked from [fangli/django-saml2-auth](https://github.com/fangli/django-saml2-auth). As I stated [in this comment](https://github.com/grafana/django-saml2-auth/issues/396#issuecomment-4204617928), I no longer work for Grafana and no longer have access to that repository, so ongoing work continues here: [mostafa/django-saml2-auth](https://github.com/mostafa/django-saml2-auth).
 >
-> **PyPI:** **`django-saml2-auth-community`** is the community-maintained line, not a Grafana product. Keep **`import django_saml2_auth`**; only the **`pip`**/**`lockfile`** install name changes from **`grafana-django-saml2-auth`**. The old PyPI project may ship a final release that depends on this package (essentially renaming the project to `django-saml2-auth-community`).
+> **PyPI:** **`django-saml2-auth-community`** is the community-maintained line, not a Grafana product. Keep **`import django_saml2_auth`**; only the **`pip`**/**`lockfile`** install name changes from **`grafana-django-saml2-auth`**. The legacy package **`grafana-django-saml2-auth`** now acts as a compatibility shim that depends on this package.
 
 This plugin integrates SAML2 authentication into Django apps. SAML2 is a standard; most SAML2 identity providers work with it.
 

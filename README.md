@@ -1,12 +1,14 @@
 # Django SAML2 Authentication
 
-[![PyPI](https://img.shields.io/pypi/v/grafana-django-saml2-auth?label=version&logo=pypi)](https://pypi.org/project/grafana-django-saml2-auth/) [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/mostafa/django-saml2-auth/ci.yml?branch=main&logo=github)](https://github.com/mostafa/django-saml2-auth/actions) [![Coveralls](https://img.shields.io/coveralls/github/mostafa/django-saml2-auth?logo=coveralls)](https://coveralls.io/github/mostafa/django-saml2-auth) [![Downloads](https://pepy.tech/badge/grafana-django-saml2-auth)](https://pepy.tech/project/grafana-django-saml2-auth)
+[![PyPI](https://img.shields.io/pypi/v/django-saml2-auth-community?label=version&logo=pypi)](https://pypi.org/project/django-saml2-auth-community/) [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/mostafa/django-saml2-auth/ci.yml?branch=main&logo=github)](https://github.com/mostafa/django-saml2-auth/actions) [![Coveralls](https://img.shields.io/coveralls/github/mostafa/django-saml2-auth?logo=coveralls)](https://coveralls.io/github/mostafa/django-saml2-auth) [![Downloads (new)](https://pepy.tech/badge/django-saml2-auth-community)](https://pepy.tech/project/django-saml2-auth-community) [![Downloads (legacy)](https://pepy.tech/badge/grafana-django-saml2-auth)](https://pepy.tech/project/grafana-django-saml2-auth)
 
 > [!NOTE]
 > To learn more about SAML SSO in Django, read the "SAML SSO in Django" series: [Part 1: Introduction to SAML SSO](https://mostafa.dev/saml-sso-in-django-734e0f871f22) and [Part 2: Integrating SAML SSO into a Django app with Okta](https://mostafa.dev/saml-sso-in-django-1a681123e801).
 
 > [!IMPORTANT]
-> This project is a fork of [grafana/django-saml2-auth](https://github.com/grafana/django-saml2-auth), itself forked from [fangli/django-saml2-auth](https://github.com/fangli/django-saml2-auth). The [former Grafana maintainer](https://github.com/grafana/django-saml2-auth/issues/396#issuecomment-4204617928) (@mostafa) no longer has access to that repository, so ongoing work continues here: [mostafa/django-saml2-auth](https://github.com/mostafa/django-saml2-auth). PyPI releases use the package name **`grafana-django-saml2-auth`** (unchanged from upstream for continuity) until after the next release (v3.21.0).
+> This project is a fork of [grafana/django-saml2-auth](https://github.com/grafana/django-saml2-auth), itself forked from [fangli/django-saml2-auth](https://github.com/fangli/django-saml2-auth). As I stated [in this comment](https://github.com/grafana/django-saml2-auth/issues/396#issuecomment-4204617928), I no longer work for Grafana and no longer have access to that repository, so ongoing work continues here: [mostafa/django-saml2-auth](https://github.com/mostafa/django-saml2-auth).
+>
+> **PyPI:** **`django-saml2-auth-community`** is the community-maintained line, not a Grafana product. Keep **`import django_saml2_auth`**; only the **`pip`**/**`lockfile`** install name changes from **`grafana-django-saml2-auth`**. The old PyPI project may ship a final release that depends on this package (essentially renaming the project to `django-saml2-auth-community`).
 
 This plugin integrates SAML2 authentication into Django apps. SAML2 is a standard; most SAML2 identity providers work with it.
 
@@ -44,7 +46,7 @@ Each release includes a CycloneDX SBOM (JSON) as a workflow artifact, built with
 Install from PyPI:
 
 ```bash
-pip install grafana-django-saml2-auth
+pip install django-saml2-auth-community
 ```
 
 Or install from a Git clone (use a virtual environment):

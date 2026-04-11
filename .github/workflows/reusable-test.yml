@@ -8,7 +8,7 @@ permissions: {}
 
 jobs:
   test:
-    name: Test django-saml2-auth
+    name: Test django-saml2-auth-community
     runs-on: ubuntu-latest
     strategy:
       matrix:

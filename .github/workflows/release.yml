@@ -19,7 +19,7 @@ jobs:
       id-token: write # nested reusable: matrix OIDC scope
     uses: ./.github/workflows/reusable-test.yml
   build:
-    name: Build and Push django-saml2-auth to PyPI
+    name: Build and publish django-saml2-auth-community to PyPI
     runs-on: ubuntu-latest
     needs: test-suite
     # Use a dedicated environment so PyPI tokens are not read at job level without it (zizmor: secrets-outside-env).
@@ -53,7 +53,7 @@ jobs:
           uv pip install build cyclonedx-bom twine
       - name: Generate CycloneDX SBOM artifacts 📃
         run: |
-          uv run python -m cyclonedx_py env --pyproject pyproject.toml --of JSON -o django-saml2-auth-${GITHUB_REF_NAME}.cyclonedx.json
+          uv run python -m cyclonedx_py env --pyproject pyproject.toml --of JSON -o django-saml2-auth-community-${GITHUB_REF_NAME}.cyclonedx.json
       - name: Build package 🏗️
         run: |
           uv run python -m build
@@ -74,4 +74,4 @@ jobs:
             --generate-notes \
             dist/*.tar.gz \
             dist/*.whl \
-            "django-saml2-auth-${GITHUB_REF_NAME}.cyclonedx.json"
+            "django-saml2-auth-community-${GITHUB_REF_NAME}.cyclonedx.json"

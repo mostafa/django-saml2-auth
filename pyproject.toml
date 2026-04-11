@@ -1,5 +1,5 @@
 [project]
-name = "grafana-django-saml2-auth"
+name = "django-saml2-auth-community"
 # Embedded as the PyPI project description (long description); required for pypi.org project page.
 readme = { file = "README.md", content-type = "text/markdown" }
 dynamic = ["version"]

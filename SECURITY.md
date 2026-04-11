@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-Security fixes are applied to the **latest release** in the current major/minor line maintained on [github.com/mostafa/django-saml2-auth](https://github.com/mostafa/django-saml2-auth). Use the latest published version on [PyPI](https://pypi.org/project/grafana-django-saml2-auth/) when possible.
+Security fixes are applied to the **latest release** in the current major/minor line maintained on [github.com/mostafa/django-saml2-auth](https://github.com/mostafa/django-saml2-auth). Use the latest published version on [PyPI](https://pypi.org/project/django-saml2-auth-community/) when possible.
 
 ## Reporting a vulnerability
 

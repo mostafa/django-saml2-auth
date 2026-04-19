@@ -67,9 +67,17 @@ def complete_simplesamlphp_login(
     """
     client = httpx.Client(follow_redirects=False, timeout=60.0)
     url = idp_entry_url
+    # After a POST (login or hidden form), SimpleSAMLphp may end on a URL that must not be
+    # re-fetched with GET (e.g. loginuserpass.php? with no query → 400). Reuse the POST
+    # response body instead of issuing that GET.
+    pending: Optional[httpx.Response] = None
 
     for _ in range(35):
-        r = _follow_redirects(client, client.get(url))
+        if pending is not None:
+            r = pending
+            pending = None
+        else:
+            r = _follow_redirects(client, client.get(url))
 
         text = r.text
         if "SAMLResponse" in text and "<form" in text.lower():
@@ -96,7 +104,7 @@ def complete_simplesamlphp_login(
             r = _follow_redirects(client, r)
             if r.status_code != 200:
                 raise RuntimeError(f"After login POST expected 200, got {r.status_code} at {r.url}")
-            url = str(r.url)
+            pending = r
             continue
 
         if hidden:
@@ -105,7 +113,7 @@ def complete_simplesamlphp_login(
                 raise RuntimeError(
                     f"After hidden POST expected 200, got {r.status_code} at {r.url}"
                 )
-            url = str(r.url)
+            pending = r
             continue
 
         raise RuntimeError(f"No SAMLResponse and no known form at {r.url}: {text[:400]!r}")

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import time
+from types import ModuleType
 from typing import Any, Dict, Iterator
 from urllib.error import URLError
 from urllib.request import urlopen
@@ -10,13 +11,15 @@ from urllib.request import urlopen
 import pytest
 from testcontainers.core.container import DockerContainer
 
+_docker_module: ModuleType | None = None
+_HAS_DOCKER_PYTHON = False
 try:
-    import docker as _docker_module
+    import docker as _docker_pkg
 
+    _docker_module = _docker_pkg
     _HAS_DOCKER_PYTHON = True
 except ImportError:
-    _docker_module = None
-    _HAS_DOCKER_PYTHON = False
+    pass
 
 _IDP_DOCKER_IMAGE = "jamedjo/test-saml-idp:latest"
 _IDP_METADATA_PATH = "/simplesaml/saml2/idp/metadata.php"

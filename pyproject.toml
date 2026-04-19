@@ -46,6 +46,7 @@ dev = [
     "responses==0.26.0",
     "ruff==0.15.9",
     "testcontainers==4.10.0",
+    "types-docker>=7.1.0.20250328",
     "types-pysaml2==1.0.1",
     "types-setuptools==82.0.0.20260408",
 ]
@@ -94,6 +95,11 @@ markers = [
 
 [tool.mypy]
 plugins = ["mypy_django_plugin.main"]
+
+[[tool.mypy.overrides]]
+# testcontainers-python does not ship py.typed; no types-testcontainers on PyPI yet.
+module = "testcontainers.*"
+ignore_missing_imports = true
 
 [tool.django-stubs]
 django_settings_module = "django_saml2_auth.tests.settings"

@@ -8,7 +8,7 @@ from typing import List
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = "SECRET"
 DEBUG = True
-ALLOWED_HOSTS: List[str] = []
+ALLOWED_HOSTS: List[str] = ["testserver", "localhost", "127.0.0.1"]
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",

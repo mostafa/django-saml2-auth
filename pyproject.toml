@@ -39,11 +39,14 @@ dev = [
     "coverage==7.13.5",
     "cyclonedx-bom==7.3.0",
     "django-stubs==6.0.2",
+    "httpx>=0.27,<1",
     "mypy==1.20.0",
     "pytest==9.0.3",
     "pytest-django==4.12.0",
     "responses==0.26.0",
     "ruff==0.15.9",
+    "testcontainers==4.10.0",
+    "types-docker>=7.1.0.20250328",
     "types-pysaml2==1.0.1",
     "types-setuptools==82.0.0.20260408",
 ]
@@ -81,12 +84,22 @@ pythonpath = "."
 filterwarnings = [
     "ignore::DeprecationWarning",
     "ignore::jwt.warnings.InsecureKeyLengthWarning",
+    # pysaml2 warns when SP allows unsigned assertions; integration IdP uses unsigned responses.
+    "ignore:The SAML service provider accepts unsigned SAML Responses and Assertions:UserWarning:saml2.client_base",
 ]
 addopts = ["--import-mode=importlib"]
 testpaths = ["django_saml2_auth/tests"]
+markers = [
+    "integration: tests that require Docker (SAML IdP container)",
+]
 
 [tool.mypy]
 plugins = ["mypy_django_plugin.main"]
+
+[[tool.mypy.overrides]]
+# testcontainers-python does not ship py.typed; no types-testcontainers on PyPI yet.
+module = "testcontainers.*"
+ignore_missing_imports = true
 
 [tool.django-stubs]
 django_settings_module = "django_saml2_auth.tests.settings"

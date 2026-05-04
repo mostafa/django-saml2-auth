@@ -44,7 +44,7 @@ dev = [
     "pytest==9.0.3",
     "pytest-django==4.12.0",
     "responses==0.26.0",
-    "ruff==0.15.10",
+    "ruff==0.15.12",
     "testcontainers==4.14.2",
     "types-docker>=7.1.0.20250328",
     "types-pysaml2==1.0.1",

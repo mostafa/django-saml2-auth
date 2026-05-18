@@ -36,7 +36,7 @@ Issues = "https://github.com/mostafa/django-saml2-auth/issues"
 
 [dependency-groups]
 dev = [
-    "coverage==7.13.5",
+    "coverage==7.14.0",
     "cyclonedx-bom==7.3.0",
     "django-stubs==6.0.2",
     "httpx>=0.27,<1",

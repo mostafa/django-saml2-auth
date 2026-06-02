@@ -28,7 +28,7 @@ classifiers = [
     "Topic :: Security",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
-dependencies = ["pyjwt==2.12.1", "pysaml2==7.5.4"]
+dependencies = ["pyjwt==2.13.0", "pysaml2==7.5.4"]
 
 [project.urls]
 Homepage = "https://github.com/mostafa/django-saml2-auth"

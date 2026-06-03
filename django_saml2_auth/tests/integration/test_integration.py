@@ -130,7 +130,8 @@ class TestSaml2IntegrationAppE2E:
         u = user_model.objects.get(username__iexact=rows[0]["username"])
         assert u.is_active
         principal = (u.get_username() or getattr(u, "email", "") or "").lower()
-        assert "user" in principal and "example.com" in principal
+        local_part, _, domain = principal.partition("@")
+        assert "user" in local_part and domain == "example.com"
 
         for name in (
             "GET_METADATA_AUTO_CONF_URLS",

@@ -253,13 +253,16 @@ def acs(request: HttpRequest):
     def redirect(redirect_url: Optional[str] = None) -> HttpResponseRedirect:
         """Redirect to the redirect_url or the root page.
 
+        The target is re-validated against ALLOWED_REDIRECT_HOSTS so an open
+        redirect can never be reached even if a caller passes an unvetted URL.
+
         Args:
             redirect_url (str, optional): Redirect URL. Defaults to None.
 
         Returns:
             HttpResponseRedirect: Redirect to the redirect_url or the root page.
         """
-        if redirect_url:
+        if redirect_url and is_safe_url(redirect_url, allowed_hosts):
             return HttpResponseRedirect(redirect_url)
         else:
             return HttpResponseRedirect("/")

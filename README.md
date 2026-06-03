@@ -27,11 +27,10 @@ With **`CREATE_USER`** enabled, new users can be created in Django when they com
 
     | **Python**                             | **Django**     | **django-saml2-auth** | **End of extended support<br/>(Django)** |
     | -------------------------------------- | -------------- | --------------------- | ---------------------------------------- |
-    | 3.10.x, 3.11.x, 3.12.x                 | 4.2.x          | >=3.4.0               | April 2026                               |
     | 3.10.x, 3.11.x, 3.12.x, 3.13.x, 3.14.x | 5.2.x (≥5.2.8) | >3.12.0               | April 2028                               |
     | 3.12.x, 3.13.x, 3.14.x                 | 6.0.x          | >3.12.0               | April 2027                               |
 
-  Python 3.14 is supported with **Django 5.2.8+** or **Django 6.0** ([5.2](https://docs.djangoproject.com/en/5.2/releases/5.2/#python-compatibility), [6.0](https://docs.djangoproject.com/en/6.0/releases/6.0/#python-compatibility)). Django 4.2 does not support Python 3.14. **Django 6.0** supports **Python 3.12, 3.13, and 3.14** only; use Django 5.2 for Python 3.10 or 3.11.
+  **Django 5.2.8+** is the minimum supported Django release. Python 3.14 is supported with **Django 5.2.8+** or **Django 6.0** ([5.2](https://docs.djangoproject.com/en/5.2/releases/5.2/#python-compatibility), [6.0](https://docs.djangoproject.com/en/6.0/releases/6.0/#python-compatibility)). **Django 6.0** supports **Python 3.12, 3.13, and 3.14** only; use Django 5.2 for Python 3.10 or 3.11.
 
 - Release notes are on [GitHub Releases](https://github.com/mostafa/django-saml2-auth/releases).
 
@@ -385,7 +384,7 @@ To override these pages, add templates named `django_saml2_auth/error.html`, `dj
 
 If a `django_saml2_auth/welcome.html` template exists, it is shown after login instead of redirecting to the previous page. The [user object](https://docs.djangoproject.com/en/stable/ref/contrib/auth/#user-model) is available as `user` in the template context.
 
-To use the bundled sign-out view, add these **before** your `urlpatterns` (use `re_path` on Django 4+):
+To use the bundled sign-out view, add these **before** your `urlpatterns`:
 
 ```python
 from django.urls import re_path

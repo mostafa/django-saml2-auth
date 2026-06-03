@@ -8,22 +8,19 @@ permissions: {}
 
 jobs:
   test:
-    name: Test django-saml2-auth-community
+    name: Test Django ${{ matrix.versions.djangoSeries }} (Python ${{ matrix.versions.pythonVersion }})
     runs-on: ubuntu-latest
     strategy:
       matrix:
         versions:
-          - { "djangoVersion": "4.2.24", "pythonVersion": "3.10" }
-          - { "djangoVersion": "4.2.24", "pythonVersion": "3.11" }
-          - { "djangoVersion": "4.2.24", "pythonVersion": "3.12" }
-          - { "djangoVersion": "5.2.12", "pythonVersion": "3.10" }
-          - { "djangoVersion": "5.2.12", "pythonVersion": "3.11" }
-          - { "djangoVersion": "5.2.12", "pythonVersion": "3.12" }
-          - { "djangoVersion": "5.2.12", "pythonVersion": "3.13" }
-          - { "djangoVersion": "5.2.12", "pythonVersion": "3.14" }
-          - { "djangoVersion": "6.0.4", "pythonVersion": "3.12" }
-          - { "djangoVersion": "6.0.4", "pythonVersion": "3.13" }
-          - { "djangoVersion": "6.0.4", "pythonVersion": "3.14" }
+          - { "djangoSeries": "5.2", "djangoConstraint": ">=5.2.8,<5.3", "pythonVersion": "3.10" }
+          - { "djangoSeries": "5.2", "djangoConstraint": ">=5.2.8,<5.3", "pythonVersion": "3.11" }
+          - { "djangoSeries": "5.2", "djangoConstraint": ">=5.2.8,<5.3", "pythonVersion": "3.12" }
+          - { "djangoSeries": "5.2", "djangoConstraint": ">=5.2.8,<5.3", "pythonVersion": "3.13" }
+          - { "djangoSeries": "5.2", "djangoConstraint": ">=5.2.8,<5.3", "pythonVersion": "3.14" }
+          - { "djangoSeries": "6.0", "djangoConstraint": ">=6.0,<6.1", "pythonVersion": "3.12" }
+          - { "djangoSeries": "6.0", "djangoConstraint": ">=6.0,<6.1", "pythonVersion": "3.13" }
+          - { "djangoSeries": "6.0", "djangoConstraint": ">=6.0,<6.1", "pythonVersion": "3.14" }
     permissions:
       id-token: write # reserved for OIDC-capable coverage or signing steps
       contents: read # checkout and read coverage output
@@ -46,18 +43,20 @@ jobs:
           sudo apt-get install -y xmlsec1 libxml2-dev libxslt1-dev
       - name: Install dependencies 📦
         env:
-          DJANGO_VERSION: ${{ matrix.versions.djangoVersion }}
+          DJANGO_CONSTRAINT: ${{ matrix.versions.djangoConstraint }}
         run: |
           uv sync
           # Install matrix Django into the job venv only. `uv add` re-resolves the whole project
           # for all `requires-python` versions; Django 6.x needs Python >=3.12 and fails that
           # universal resolution while the project still supports 3.10/3.11.
-          uv pip install "Django==${DJANGO_VERSION}"
+          # Semver range picks the latest patch in each supported minor line on every CI run.
+          uv pip install "Django${DJANGO_CONSTRAINT}"
+          uv run python -c "import django; print(f'Resolved Django {django.get_version()}')"
       - name: Check types, syntax and duckstrings 🦆
         run: |
           uv run python -m mypy --explicit-package-bases .
           uv run python -m ruff check .
-      - name: Test Django ${{ matrix.versions.djangoVersion }} with coverage 🧪
+      - name: Test Django ${{ matrix.versions.djangoSeries }} with coverage 🧪
         run: |
           uv run coverage run --source=django_saml2_auth -m pytest . && uv run coverage lcov -o coverage.lcov
       - name: Submit coverage report to Coveralls 📈
@@ -67,7 +66,7 @@ jobs:
           github-token: ${{ github.token }}
           path-to-lcov: ./coverage.lcov
           # Object matrix has no splat in GHA expressions; join(matrix.versions.*, …) fails evaluation.
-          flag-name: run-${{ matrix.versions.djangoVersion }}-${{ matrix.versions.pythonVersion }}
+          flag-name: run-${{ matrix.versions.djangoSeries }}-${{ matrix.versions.pythonVersion }}
           parallel: true
   finish:
     name: Coveralls parallel finished

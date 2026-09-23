@@ -50,7 +50,7 @@ jobs:
       - name: Install dependencies 📦
         run: |
           uv sync
-          uv pip install build cyclonedx-bom twine
+          uv pip install build cyclonedx-bom
       - name: Generate CycloneDX SBOM artifacts 📃
         run: |
           uv run python -m cyclonedx_py env --pyproject pyproject.toml --of JSON -o django-saml2-auth-community-${GITHUB_REF_NAME}.cyclonedx.json
@@ -59,12 +59,13 @@ jobs:
           uv run python -m build
       - name: Verify package metadata (README / long description) 📄
         run: |
-          uv run python -m twine check --strict dist/*
+          # uv run syncs the lockfile and downgrades packaging; twine 7 needs packaging>=26.1.
+          uvx twine check --strict dist/*
       - name: Publish to PyPI 📦
         env:
           PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
         run: |
-          uv run python -m twine upload --username __token__ --password "$PYPI_API_TOKEN" dist/*
+          uvx twine upload --username __token__ --password "$PYPI_API_TOKEN" dist/*
       - name: Create release and add artifacts 🚀
         env:
           GH_TOKEN: ${{ github.token }}

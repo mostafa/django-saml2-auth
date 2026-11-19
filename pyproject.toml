@@ -54,7 +54,7 @@ dev = [
 ]
 
 [build-system]
-requires = ["hatchling==1.29.0", "uv-dynamic-versioning==0.14.0"]
+requires = ["hatchling==1.29.0", "uv-dynamic-versioning==0.14.1"]
 build-backend = "hatchling.build"
 
 [tool.hatch.version]
